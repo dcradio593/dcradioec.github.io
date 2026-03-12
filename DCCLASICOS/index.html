@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estrategia de Impulsación</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            transition: transform 0.3s ease;
+        }
+        .container:hover {
+            transform: scale(1.01);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h2 {
+            color: #2c3e50;
+            font-size: 26px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: fadeInDown 0.5s;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 12px 25px;
+            background: #ecf0f1;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .tab.active {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+            box-shadow: 0 4px 10px rgba(52,152,219,0.3);
+            transform: translateY(-2px);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+        }
+        h4 {
+            color: #34495e;
+            margin: 20px 0 10px;
+            font-size: 18px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dcdde1;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+            transform: scale(1.02);
+        }
+        .readonly-field {
+            background-color: #f5f6fa;
+            color: #2c3e50;
+            font-weight: 500;
+            cursor: not-allowed;
+        }
+        .btn-send {
+            width: 100%;
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(39,174,96,0.3);
+            margin-top: 25px;
+        }
+        .btn-send:hover {
+            background: #2ecc71;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(46,204,113,0.4);
+        }
+        .btn-send:disabled {
+            background: #bdc3c7;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .message-box {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+            animation: fadeInUp 0.3s;
+        }
+        .message-box.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .message-box.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .message-box.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        small {
+            color: #7f8c8d;
+            font-size: 12px;
+            display: block;
+            margin-top: 4px;
+        }
+        .result-box {
+            background: #f0f3f6;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            transition: box-shadow 0.3s;
+        }
+        .result-box:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #bdc3c7;
+        }
+        .result-item span:first-child {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .result-item span:last-child {
+            font-weight: 700;
+            color: #27ae60;
+        }
+        .single-product {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .product-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .product-row input {
+            flex: 1;
+            min-width: 80px;
+        }
+        .product-label {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>🚀 ESTRATEGIA DE IMPULSACIÓN ZONA DARÍO CASTELLANOS</h2>
+        <!-- Subtítulo eliminado -->
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="cambiarPestana('registro')">📝 Registro PDV</div>
+        <div class="tab" onclick="cambiarPestana('calculos')">📊 Cálculos</div>
+    </div>
+
+    <!-- ========== PESTAÑA REGISTRO PDV (sin cambios) ========== -->
+    <div id="pestanaRegistro" class="tab-content active">
+        <h3>📌 Registro de Impulsación Diaria</h3>
+        <div class="form-grid">
+            <div>
+                <label for="pdv">Punto de Venta (PDV) *</label>
+                <select id="pdv" required>
+                    <option value="">-- Seleccione --</option>
+                    <option value="ECO QUITO COLON">ECO QUITO COLON</option>
+                    <option value="PDV GUAYAQUIL CENTRO">PDV GUAYAQUIL CENTRO</option>
+                    <option value="PDV CUENCA NORTE">PDV CUENCA NORTE</option>
+                    <option value="PDV MANTA SUR">PDV MANTA SUR</option>
+                    <option value="PDV AMBATO CENTRO">PDV AMBATO CENTRO</option>
+                </select>
+            </div>
+            <div>
+                <label for="colaborador">Colaborador *</label>
+                <input type="text" id="colaborador" placeholder="Ej: JUAN PEREZ" required 
+                       oninput="this.value = this.value.toUpperCase()">
+                <small>Mayúsculas automáticas</small>
+            </div>
+            <div>
+                <label for="codigo">Código del Producto *</label>
+                <input type="text" id="codigo" placeholder="Ej: 0000132840" required>
+                <small>🔒 Se agregará automáticamente un apóstrofe para conservar ceros</small>
+            </div>
+            <div>
+                <label for="nombreProducto">Nombre del Producto *</label>
+                <input type="text" id="nombreProducto" placeholder="Ej: ALQUA CEP NANO CARBON" required>
+            </div>
+            <div>
+                <label for="ventaRealizada">VENTA REALIZADA HOY DIA *</label>
+                <input type="number" id="ventaRealizada" placeholder="Ej: 250" min="1" required>
+            </div>
+        </div>
+        <button class="btn-send" onclick="enviarRegistroPDV()" id="btnRegistro">
+            <span>💾</span> GUARDAR
+        </button>
+    </div>
+
+    <!-- ========== PESTAÑA CÁLCULOS (totalmente modificada) ========== -->
+    <div id="pestanaCalculos" class="tab-content">
+        <h3>📊 Análisis y Proyecciones</h3>
+
+        <!-- SECCIÓN TRANSACCIONES (meses: Dic, Ene, Feb) -->
+        <div class="result-box">
+            <h4>🏪 Transacciones por PDV</h4>
+            <div class="form-grid">
+                <div>
+                    <label for="pdvCalculos">PDV (opcional)</label>
+                    <select id="pdvCalculos">
+                        <option value="">-- No especificar --</option>
+                        <option value="ECO QUITO COLON">ECO QUITO COLON</option>
+                        <option value="PDV GUAYAQUIL CENTRO">PDV GUAYAQUIL CENTRO</option>
+                        <option value="PDV CUENCA NORTE">PDV CUENCA NORTE</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="ventasDic">Diciembre</label>
+                    <input type="number" id="ventasDic" min="0" step="1" value="2500">
+                </div>
+                <div>
+                    <label for="ventasEne">Enero</label>
+                    <input type="number" id="ventasEne" min="0" step="1" value="3000">
+                </div>
+                <div>
+                    <label for="ventasFeb">Febrero</label>
+                    <input type="number" id="ventasFeb" min="0" step="1" value="2000">
+                </div>
+                <div>
+                    <label for="numColaboradores">N° Colaboradores *</label>
+                    <input type="number" id="numColaboradores" min="1" value="3" required>
+                </div>
+            </div>
+            <div class="result-item">
+                <span>TOTAL TRANSACCIONES:</span>
+                <span id="totalTransacciones">7500</span>
+            </div>
+            <div class="result-item">
+                <span>LÍNEA BASE (PROMEDIO):</span>
+                <span id="lineaBaseTransacciones">2500</span>
+            </div>
+            <div class="result-item">
+                <span>IMPULSACIONES EFECTIVAS (30%):</span>
+                <span id="impulsacionesEfectivas">750</span>
+            </div>
+            <div class="result-item">
+                <span>IMP. POR COLABORADOR:</span>
+                <span id="impXColaborador">250</span>
+            </div>
+        </div>
+
+        <!-- SECCIÓN PRODUCTO ÚNICO (meses: Dic, Ene, Feb) -->
+        <div class="result-box">
+            <h4>📦 Producto – Línea Base</h4>
+            <div class="single-product">
+                <div class="product-row">
+                    <span class="product-label">Nombre del Producto:</span>
+                    <input type="text" id="productoNombre" value="ALQUA CEP NANO CARBON" placeholder="Ej: ALQUA CEP NANO CARBON">
+                </div>
+                <div class="product-row">
+                    <span class="product-label">Ventas Diciembre:</span>
+                    <input type="number" id="prodDic" min="0" step="1" value="4">
+                </div>
+                <div class="product-row">
+                    <span class="product-label">Ventas Enero:</span>
+                    <input type="number" id="prodEne" min="0" step="1" value="3">
+                </div>
+                <div class="product-row">
+                    <span class="product-label">Ventas Febrero:</span>
+                    <input type="number" id="prodFeb" min="0" step="1" value="3">
+                </div>
+                <div class="product-row">
+                    <span class="product-label">Total Producto:</span>
+                    <input type="number" id="prodTotal" class="readonly-field" readonly value="10">
+                </div>
+                <div class="product-row">
+                    <span class="product-label">Línea Base Producto:</span>
+                    <input type="number" id="prodLB" class="readonly-field" readonly value="3.33" step="0.01">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN CUOTAS (con días efectivos editables) -->
+        <div class="result-box">
+            <h4>🎯 Cuotas Mensuales y Diarias</h4>
+            <div class="form-grid">
+                <div>
+                    <label for="diasEfectivos">Días efectivos *</label>
+                    <input type="number" id="diasEfectivos" min="1" value="21" required>
+                </div>
+            </div>
+            <div class="result-item">
+                <span>CUOTA MENSUAL PRODUCTO:</span>
+                <span id="cuotaMensual">253</span>
+            </div>
+            <div class="result-item">
+                <span>CUOTA DIARIA:</span>
+                <span id="cuotaDiaria">12.05</span>
+            </div>
+        </div>
+
+        <button class="btn-send" onclick="enviarCalculos()" id="btnCalculos">
+            <span>💾</span> GUARDAR
+        </button>
+    </div>
+
+    <!-- Mensajes de estado -->
+    <div id="messageBox" class="message-box"></div>
+
+    <div class="footer" style="text-align:center; margin-top:25px; color:#95a5a6;">
+        © 2026 Estrategia de Impulsación – Zona Darío Castellanos
+    </div>
+</div>
+
+<script>
+    // ==================== CONFIGURACIÓN ====================
+    const googleSheetsUrl = "https://script.google.com/macros/s/AKfycbwzjiNZpWIX6U6czpbcJy6WbtDyKE62QsQFh8Zj_E2PHGA3osmYihip7Vh7XZxEL6N9/exec";
+
+    // ==================== CAMBIO DE PESTAÑAS ====================
+    function cambiarPestana(pestana) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if (pestana === 'registro') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('pestanaRegistro').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('pestanaCalculos').classList.add('active');
+            calcularTodo(); // actualizar cálculos al entrar
+        }
+        ocultarMensaje();
+    }
+
+    // ==================== CÁLCULOS AUTOMÁTICOS (PESTAÑA CÁLCULOS) ====================
+    function calcularTodo() {
+        // --- Transacciones con meses Dic, Ene, Feb ---
+        const dic = parseFloat(document.getElementById('ventasDic').value) || 0;
+        const ene = parseFloat(document.getElementById('ventasEne').value) || 0;
+        const feb = parseFloat(document.getElementById('ventasFeb').value) || 0;
+        const numColab = parseInt(document.getElementById('numColaboradores').value) || 1;
+
+        const totalTrans = dic + ene + feb;
+        const lineaBase = totalTrans / 3;
+        const impulsaciones = lineaBase * 0.3;
+        const impXColab = impulsaciones / numColab;
+
+        document.getElementById('totalTransacciones').innerText = totalTrans.toFixed(0);
+        document.getElementById('lineaBaseTransacciones').innerText = lineaBase.toFixed(0);
+        document.getElementById('impulsacionesEfectivas').innerText = impulsaciones.toFixed(0);
+        document.getElementById('impXColaborador').innerText = impXColab.toFixed(0);
+
+        // --- Producto único (Dic, Ene, Feb) ---
+        const prodDic = parseFloat(document.getElementById('prodDic').value) || 0;
+        const prodEne = parseFloat(document.getElementById('prodEne').value) || 0;
+        const prodFeb = parseFloat(document.getElementById('prodFeb').value) || 0;
+        const prodTotal = prodDic + prodEne + prodFeb;
+        const prodLB = prodTotal / 3;
+
+        document.getElementById('prodTotal').value = prodTotal;
+        document.getElementById('prodLB').value = prodLB.toFixed(2);
+
+        // --- Cuotas ---
+        const dias = parseInt(document.getElementById('diasEfectivos').value) || 1;
+        const cuotaMensual = impXColab + prodLB;
+        const cuotaDiaria = cuotaMensual / dias;
+
+        document.getElementById('cuotaMensual').innerText = cuotaMensual.toFixed(0);
+        document.getElementById('cuotaDiaria').innerText = cuotaDiaria.toFixed(2);
+    }
+
+    // Listeners para actualizar automáticamente
+    document.getElementById('ventasDic').addEventListener('input', calcularTodo);
+    document.getElementById('ventasEne').addEventListener('input', calcularTodo);
+    document.getElementById('ventasFeb').addEventListener('input', calcularTodo);
+    document.getElementById('numColaboradores').addEventListener('input', calcularTodo);
+    document.getElementById('prodDic').addEventListener('input', calcularTodo);
+    document.getElementById('prodEne').addEventListener('input', calcularTodo);
+    document.getElementById('prodFeb').addEventListener('input', calcularTodo);
+    document.getElementById('diasEfectivos').addEventListener('input', calcularTodo);
+
+    // ==================== ENVÍO DE REGISTRO PDV ====================
+    async function enviarRegistroPDV() {
+        const pdv = document.getElementById('pdv').value.trim();
+        const colaborador = document.getElementById('colaborador').value.trim();
+        let codigo = document.getElementById('codigo').value.trim();
+        const nombreProducto = document.getElementById('nombreProducto').value.trim();
+        const ventaRealizada = document.getElementById('ventaRealizada').value.trim();
+
+        if (!pdv) return mostrarMensaje('⚠️ Selecciona un PDV', 'error');
+        if (!colaborador) return mostrarMensaje('⚠️ Ingresa el colaborador', 'error');
+        if (!codigo) return mostrarMensaje('⚠️ Ingresa el código del producto', 'error');
+        if (!nombreProducto) return mostrarMensaje('⚠️ Ingresa el nombre del producto', 'error');
+        if (!ventaRealizada) return mostrarMensaje('⚠️ Ingresa la venta realizada hoy', 'error');
+
+        // Agregar apóstrofe para conservar ceros en Sheets
+        if (!codigo.startsWith("'")) {
+            codigo = "'" + codigo;
+        }
+
+        await enviarDatos({
+            tipo: 'registro',
+            pdv, colaborador, codigo, nombreProducto, ventaRealizada,
+            fecha: new Date().toLocaleDateString('es-EC'),
+            hora: new Date().toLocaleTimeString('es-EC', { hour12: false })
+        }, 'btnRegistro', 'registro');
+    }
+
+    // ==================== ENVÍO DE CÁLCULOS ====================
+    async function enviarCalculos() {
+        const pdv = document.getElementById('pdvCalculos').value.trim() || "No especificado";
+        const dic = document.getElementById('ventasDic').value || 0;
+        const ene = document.getElementById('ventasEne').value || 0;
+        const feb = document.getElementById('ventasFeb').value || 0;
+        const total = document.getElementById('totalTransacciones').innerText;
+        const lineaBase = document.getElementById('lineaBaseTransacciones').innerText;
+        const impulsaciones = document.getElementById('impulsacionesEfectivas').innerText;
+        const impXColab = document.getElementById('impXColaborador').innerText;
+        const numColab = document.getElementById('numColaboradores').value || 3;
+        const productoNombre = document.getElementById('productoNombre').value.trim() || "Producto genérico";
+        const prodDic = document.getElementById('prodDic').value || 0;
+        const prodEne = document.getElementById('prodEne').value || 0;
+        const prodFeb = document.getElementById('prodFeb').value || 0;
+        const prodTotal = document.getElementById('prodTotal').value;
+        const prodLB = document.getElementById('prodLB').value;
+        const dias = document.getElementById('diasEfectivos').value || 21;
+        const cuotaMensual = document.getElementById('cuotaMensual').innerText;
+        const cuotaDiaria = document.getElementById('cuotaDiaria').innerText;
+
+        await enviarDatos({
+            tipo: 'calculos',
+            pdv, 
+            diciembre: dic, enero: ene, febrero: feb,
+            totalTransacciones: total,
+            lineaBaseTransacciones: lineaBase,
+            impulsacionesEfectivas: impulsaciones,
+            impXColaborador: impXColab,
+            numeroColaboradores: numColab,
+            productoNombre,
+            ventasProducto: { dic: prodDic, ene: prodEne, feb: prodFeb },
+            totalProducto: prodTotal,
+            lineaBaseProducto: prodLB,
+            diasEfectivos: dias,
+            cuotaMensual,
+            cuotaDiaria,
+            fecha: new Date().toLocaleDateString('es-EC'),
+            hora: new Date().toLocaleTimeString('es-EC', { hour12: false })
+        }, 'btnCalculos', 'calculos');
+    }
+
+    // ==================== FUNCIÓN GENÉRICA DE ENVÍO ====================
+    async function enviarDatos(datos, botonId, tipoForm) {
+        const btn = document.getElementById(botonId);
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="loading"></span> Guardando...';
+        btn.disabled = true;
+        mostrarMensaje('📤 Enviando...', 'info');
+
+        try {
+            const formData = new URLSearchParams();
+            for (let key in datos) {
+                // Si algún valor es objeto, lo convertimos a JSON string
+                if (typeof datos[key] === 'object') {
+                    formData.append(key, JSON.stringify(datos[key]));
+                } else {
+                    formData.append(key, datos[key]);
+                }
+            }
+
+            await fetch(googleSheetsUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+
+            mostrarMensaje('✅ Guardado correctamente', 'success');
+
+            // Limpiar campos después de 1.5 segundos (solo para registro)
+            setTimeout(() => {
+                if (tipoForm === 'registro') {
+                    document.getElementById('pdv').value = '';
+                    document.getElementById('colaborador').value = '';
+                    document.getElementById('codigo').value = '';
+                    document.getElementById('nombreProducto').value = '';
+                    document.getElementById('ventaRealizada').value = '';
+                }
+                ocultarMensaje();
+            }, 1500);
+
+        } catch (error) {
+            console.error(error);
+            mostrarMensaje('❌ Error de conexión', 'error');
+        } finally {
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        }
+    }
+
+    function mostrarMensaje(texto, tipo) {
+        const msg = document.getElementById('messageBox');
+        msg.textContent = texto;
+        msg.className = 'message-box ' + tipo;
+    }
+
+    function ocultarMensaje() {
+        document.getElementById('messageBox').textContent = '';
+        document.getElementById('messageBox').className = 'message-box';
+    }
+
+    // Inicializar cálculos al cargar
+    window.onload = calcularTodo;
+</script>
+</body>
+</html>
